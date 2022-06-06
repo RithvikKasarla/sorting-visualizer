@@ -17,6 +17,8 @@ class Sortervisuals extends React.Component{
             NOELEM: 20,
             speed: (201-20),
             valueNow:10,
+            running: false,
+            paused:false
         }
     }
 
@@ -53,7 +55,9 @@ class Sortervisuals extends React.Component{
                     array[pos2] = temp;
                     if(move!=0){
                         arraybarlist[plan.pos[move-1][0]].style.backgroundColor = 'blue';
-                        arraybarlist[plan.pos[move-1][1]].style.backgroundColor = 'blue';
+                        if(plan.pos[move-1][1] >= 0){
+                            arraybarlist[plan.pos[move-1][1]].style.backgroundColor = 'blue';
+                        }
                     }
 
                     arraybarlist[pos1].style.backgroundColor = 'red';
@@ -68,7 +72,9 @@ class Sortervisuals extends React.Component{
                     }
                     
                     arraybarlist[pos1].style.backgroundColor = 'green';
-                    arraybarlist[pos2].style.backgroundColor = 'green';
+                    if(pos2>=0){
+                        arraybarlist[pos2].style.backgroundColor = 'green';
+                    }
                     
                     this.setState({array})
                 }
@@ -86,10 +92,91 @@ class Sortervisuals extends React.Component{
                 for(let idx = 0; idx < arraybarlist.length; idx++){
                     arraybarlist[idx].style.backgroundColor = 'blue';
                 }
+                this.setState({running:false});
             },speed*3);
         },(((plan.pos.length) * speed) + 20))
     }
-      
+
+
+
+    QueueAnimate(plan){
+        var speed = this.state.speed;
+        var array = this.state.array;
+        console.log(plan);
+        var animationSteps = [];
+        const arraybarlist = document.getElementsByClassName('value-bar');
+        for(let move = 0; move <plan.pos.length;move ++){
+            var step = function(plan){
+                var pos1 = plan.pos[move][0];
+                var pos2 = plan.pos[move][1];
+                if(plan.swap[move]){//a swap or not
+                    var temp = array[pos1];
+                    array[pos1] = array[pos2];
+                    array[pos2] = temp;
+                    if(move!=0){
+                        arraybarlist[plan.pos[move-1][0]].style.backgroundColor = 'blue';
+                        if(plan.pos[move-1][1] >= 0){
+                            arraybarlist[plan.pos[move-1][1]].style.backgroundColor = 'blue';
+                        }
+                    }
+
+                    arraybarlist[pos1].style.backgroundColor = 'red';
+                    arraybarlist[pos2].style.backgroundColor = 'red';
+                    this.setState({array})
+                }else{
+                    var pos1 = plan.pos[move][0];
+                    var pos2 = plan.pos[move][1];
+                    if(move!=0){
+                        arraybarlist[plan.pos[move-1][0]].style.backgroundColor = 'blue';
+                        arraybarlist[plan.pos[move-1][1]].style.backgroundColor = 'blue';
+                    }
+                    
+                    arraybarlist[pos1].style.backgroundColor = 'green';
+                    if(pos2>=0){
+                        arraybarlist[pos2].style.backgroundColor = 'green';
+                    }
+                    
+                    this.setState({array})
+                }
+            }
+            var stepWrap = this.wrapFunction(step,this,[plan])//--------------------
+            animationSteps.push(stepWrap);
+        }
+        var step = function(plan){
+            array = plan.sorted;
+            this.setState({array});
+            const arraybarlist = document.getElementsByClassName('value-bar');
+            for(let idx = 0; idx < arraybarlist.length; idx++){
+                arraybarlist[idx].style.backgroundColor = 'green';
+            }
+            setTimeout(()=>{
+                for(let idx = 0; idx < arraybarlist.length; idx++){
+                    arraybarlist[idx].style.backgroundColor = 'blue';
+                }
+                this.setState({running:false});
+            },speed*3);
+        };
+        var stepWrap = this.wrapFunction(step,this,[plan])//----------------------------------
+        animationSteps.push(stepWrap);
+        this.display(animationSteps);
+    }
+    /*
+    //https://stackoverflow.com/questions/899102/how-do-i-store-javascript-functions-in-a-queue-for-them-to-be-executed-eventuall
+    wrapFunction(fn, context, params) {
+        return function() {
+            fn.apply(context, params);
+        };
+    }
+
+
+    display(aniSteps){
+        var count = 1;
+        while(aniSteps.length>0){
+            if(!this.state.paused){
+                (aniSteps.shift())();
+            }
+        }
+    }
 
 
     QuickSortanimate(plan){
@@ -152,37 +239,52 @@ class Sortervisuals extends React.Component{
             },speed*3);
         },(((plan.pos.length) * speed) + 20))
     }
-
+    */
     bubbleSort(){
         console.log('bubblesort');
-        const bubbleSortPlan = bs.bubbleSort(this.state.array.filter(()=>true));
-        this.animate(bubbleSortPlan);
+        if(!this.state.running){
+            this.setState({running:true})
+            const bubbleSortPlan = bs.bubbleSort(this.state.array.filter(()=>true));
+            this.animate(bubbleSortPlan);
+        }
+        
     }
     
     mergeSort(){
-        console.log("mergesort");
-        console.log(this.state.array);
-        const mergeSortPlan  = ms.mergeSort(this.state.array.filter(()=>true));
-        this.animate(mergeSortPlan);
+        console.log("mergesort"); 
+        if(!this.state.running){
+            this.setState({running:true})
+            const mergeSortPlan  = ms.mergeSort(this.state.array.filter(()=>true));
+            this.animate(mergeSortPlan);
+        }
     }
 
     quickSort(){
         console.log('quicksort');
-        const quickSortPlan = qs.quickSort(this.state.array.filter(()=>true));
-        this.animate(quickSortPlan);
+        if(!this.state.running){
+            this.setState({running:true})
+            const quickSortPlan = qs.quickSort(this.state.array.filter(()=>true));
+            this.animate(quickSortPlan);
+        }
     }
 
     insertionSort(){
         console.log('insertionsort');
-        const insertionSortPlan = is.insertionSort(this.state.array.filter(()=>true));
-        this.animate(insertionSortPlan)          
+        if(!this.state.running){
+            this.setState({running:true})
+            const insertionSortPlan = is.insertionSort(this.state.array.filter(()=>true));
+            this.animate(insertionSortPlan)     
+        }     
         
     }
 
     selectionSort(){
         console.log('selectionsort');
-        const selectionSortPlan = ss.selectionSort(this.state.array.filter(()=>true));
-        this.animate(selectionSortPlan)
+        if(!this.state.running){
+            this.setState({running:true})
+            const selectionSortPlan = ss.selectionSort(this.state.array.filter(()=>true));
+            this.animate(selectionSortPlan)
+        }
     }
 
     changeNum(val){
@@ -216,7 +318,9 @@ class Sortervisuals extends React.Component{
                     <div className='button-container'><button className='button' onClick={()=>this.insertionSort()}> Insertion Sort </button></div>
                     <div className='button-container'><button className='button' onClick={()=>this.selectionSort()}> Selection Sort</button></div>
                     <ReactSlider
-                        onChange={(val)=>{this.changeNum(val)}}
+                        onChange={(val)=>{
+                            if(!this.state.running){this.changeNum(val)}
+                        }}
                         className="horizontal-slider"
                         thumbClassName="example-thumb"
                         trackClassName="example-track"
@@ -225,6 +329,8 @@ class Sortervisuals extends React.Component{
                         max="200"
                         renderThumb={(props, state) => <div {...props}>{state.valueNow}</div>}
                         />
+                    {//<div className='button-container'><button className='button' onClick={()=>{this.setState({paused:!this.state.paused})}}>PAUSE</button></div>
+                    }
                 </div>
 
                 <div className='array-holder'>
